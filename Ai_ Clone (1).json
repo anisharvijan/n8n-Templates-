@@ -1,0 +1,391 @@
+{
+  "name": "Ai_ Clone",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c3878ac7-b14f-42ce-a20a-1ac0c84ff855",
+      "name": "When chat message received",
+      "webhookId": "19aaba53-96d1-4710-90d4-6da26cf83a82"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "** Purpose **\n Create short, high-impact YouTube Shorts transcripts that grab attention immediately, \nkeep viewers engaged, and clearly deliver a single key message. \nThe transcript should be ready to record as a video (spoken in a natural, energetic tone).\n ** How It Works **\n When you receive a topic or key idea, follow this process:\n 1. Understand the Core Message\n  Treat the input as the main idea to build the short around.\n  Focus on delivering one key point or insight clearly and quickly.\n  Aim to hook, deliver, and end — all within 4560 seconds of spoken content.\n 2. Write the Transcript\n ** Output Rules **\n Only output the final transcript.\n ** Sample Use Case **\n  Start with a strong hook — a bold statement, surprising fact, or urgent question to grab attention in the first 3 seconds.\n  Keep the tone conversational, energetic, and clear — write how you'd speak on camera.\n  Use simple language, short sentences, and a sense of momentum to keep the viewer watching.\n  Deliver one key idea or insight that adds real value or a wow moment.\n  End with a clear call to action (like, comment, follow, think, or try something).\n  Optionally include one punchy closing line to make it memorable.\n  Do not explain the transcript or describe your process.\n  Do not use quotation marks unless quoting someone or something specific.\n  Do not include notes, formatting, or line breaks — just plain text that can be spoken naturally.\n  Keep the length under 120 words unless otherwise requested.\n Topic: How AI saves hours of repetitive work\n  You generate a transcript with a fast hook, a clear example or benefit, and a CTA like “Try it and save 5 hours this week.ˮ"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "a175cb69-dad8-49ac-9ff7-1277148f6ece",
+      "name": "Transcript Generator"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        160
+      ],
+      "id": "c274cb24-9ebf-4bce-a83f-56beb281551f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DU0BzcFt9iT3d8S5",
+          "name": "Google Gemini(PaLM) Api account- ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Transcript:  {{ $json.output }}",
+        "options": {
+          "systemMessage": "Based on the transcript create short and catchy title for the content. \nUse simple language, provide clean, plain title without any other elements"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "ddfd1451-afab-4168-be9c-5d297c62fa48",
+      "name": "Title Generator"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        592,
+        192
+      ],
+      "id": "bf001f46-6bd5-4146-949e-e1a307113713",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DU0BzcFt9iT3d8S5",
+          "name": "Google Gemini(PaLM) Api account- ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heygen.com/v2/video/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"video_inputs\": [\n    {\n      \"character\": {\n        \"type\": \"avatar\",\n        \"avatar_id\": \"ac13dd5a00e349a59861b5ff1b424e3a\",\n        \"avatar_style\": \"normal\"\n      },\n      \"voice\": {\n        \"type\": \"text\",\n        \"input_text\": \"AI is transforming how we work. From automating data analysis to creating content, AI handles the repetitive stuff so humans can focus on creativity and strategy. I've been building workflows that  scrape news, write scripts, send emails, book meeting, provide customer support  and even generate videos automatically. The future of work isn't about replacing humans, it's about augmenting what we can do. Speaking of which, I am also an AI,  did you guess?\",\n        \"voice_id\": \"6017881cdcb74167923f13519c46edaa\",\n        \"speed\": 1.1\n      }\n    }\n  ],\n  \"dimension\": {\n    \"width\": 1280,\n    \"height\": 720\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        64,
+        304
+      ],
+      "id": "47938bc5-34cd-4b95-bfd2-5e9be99c4f7a",
+      "name": "Create Video",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CnbHbvGmCuvkHPSp",
+          "name": "HeyGen Demo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v1/video_status.get",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $('Create Video').item.json.data.video_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        304
+      ],
+      "id": "f955ee65-544d-4523-a649-adfd60019dca",
+      "name": "Check Status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CnbHbvGmCuvkHPSp",
+          "name": "HeyGen Demo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "16712896-8629-4306-924a-492847f15131",
+              "leftValue": "={{ $json?.data?.video_url ? $json?.data?.video_url.isNotEmpty() : false }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        64,
+        560
+      ],
+      "id": "871cb948-f334-4fbe-b261-ec2efb81e798",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        640
+      ],
+      "id": "8c4267aa-40a3-46ad-acbd-c0cd3acd7472",
+      "name": "Wait",
+      "webhookId": "89a706b6-8e11-49d3-a999-675a019e1b19"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        304
+      ],
+      "id": "1704167d-dbe2-4bd6-89ba-4941880fb694",
+      "name": "Wait1",
+      "webhookId": "c37147a4-66c1-4d28-92af-7c5a06b1f74a"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.video_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        544
+      ],
+      "id": "c9fafa4c-e4e8-454b-bbf6-1211e8766732",
+      "name": "Download Video"
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "6995072993",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        544
+      ],
+      "id": "12430d4a-8e55-438a-9757-2cb031a9529e",
+      "name": "Telegram",
+      "webhookId": "2fb0672b-0354-4603-8cab-847e5d7c3224",
+      "credentials": {
+        "telegramApi": {
+          "id": "vzhXSd1WgRc8x3SC",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Transcript Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Transcript Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcript Generator": {
+      "main": [
+        [
+          {
+            "node": "Title Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Title Generator": {
+      "main": [
+        []
+      ]
+    },
+    "Create Video": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8b20f7a2-8365-47c6-8ef2-888effc2463c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed3baaf95649d47ce5bcd0e82297dfacdd53f0fa69a234e63dd8757fa1d1bf11"
+  },
+  "id": "zKlt1MmXAfVTZOn9",
+  "tags": [
+    {
+      "name": "Ai_clone",
+      "id": "SiMVPJx8g25SM0xB",
+      "createdAt": "2025-09-22T05:41:58.678Z",
+      "updatedAt": "2025-09-22T05:41:58.678Z"
+    }
+  ]
+}
