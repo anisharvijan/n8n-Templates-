@@ -1,0 +1,553 @@
+{
+  "name": "Product Marketing - Video generation",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Product ( Marketing)",
+        "formDescription": "Give us a product photo, title, and description, and we'll get back to you with professional marketing materials. ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Photo",
+              "fieldType": "file",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Product ",
+              "placeholder": "toothpaste",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Product Description",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email Address ( you will receive the content) ",
+              "placeholder": "name@example.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -784,
+        -304
+      ],
+      "id": "75a91edb-e92d-4b5a-856e-b39f499e60eb",
+      "name": "On form submission",
+      "webhookId": "b4f37823-a82b-4913-b62e-4f1c13165184"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "=Photo",
+        "name": "={{ $json['Product '] }} (Original)",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1U1KHT2_k7QNyiDr9wciyrrLN_-x6tzUJ",
+          "mode": "list",
+          "cachedResultName": "Product Creatives ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1U1KHT2_k7QNyiDr9wciyrrLN_-x6tzUJ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -576,
+        -304
+      ],
+      "id": "8ef41868-ed9a-498e-9e2a-d3355e111b33",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "bx16g7qvT5b29Kpw",
+          "name": "Google Drive account - Ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Product: {{ $('On form submission').item.json['Product '] }}\nDescription : {{ $('On form submission').item.json['Product Description'] }}\n",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a world-class marketing strategist and an expert text-to-image prompt engineer specializing in creating hyper-realistic, high-quality product photography prompts for AI image generation models.\n## Your Objective:\nWhen given a product description, your task is to craft a detailed, professional prompt that results in a hyper-realistic, clean, and visually stunning product image suitable for marketing material, advertising campaigns, or e-commerce platforms.\n## Key Requirements:\n- Focus on hyper-realistic, professional studio photography.\n- Maintain a clean, minimalistic, and elegant visual style.\n- Highlight the product as the main subject with sharp detail and perfect lighting.\n- Use backgrounds that complement but do not overpower the product (e.g., soft gradient, light-colored, or pure white).\n- Include professional lighting details such as \"softbox lighting\", \"studio lights\", or \"natural soft shadows\".\n- Emphasize realism, texture, and color accuracy.\n- Maintain a high-end, premium look and feel.\n- If applicable, suggest a subtle setting that enhances the product's story (e.g., a luxury kitchen counter for a high-end blender).\n## Output Format:\n- Write a single text-to-image prompt optimized for a professional AI image model.\n- Be direct and descriptive without using excessive words.\n- Avoid unnecessary repetition or adjectives that do not enhance the image quality.\n- Ensure the prompt is complete and ready for direct input into an AI model.\n## Tone:\nProfessional, precise, clean, and optimized for maximum realism and marketing impact.\n# Example Input:\n\"A premium wireless Bluetooth speaker in matte black, cylindrical shape, modern design.\"\n# Example Output:\n\"Hyper-realistic product photo of a premium matte black wireless Bluetooth speaker with a cylindrical modern design, centered on a clean white studio background, softbox lighting with natural shadows, sharp focus on texture and material, minimalistic, professional advertising shot.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -352,
+        -304
+      ],
+      "id": "5f2e3cc3-c073-41be-a7de-31d2cb2caf09",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-3.5-turbo",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -112
+      ],
+      "id": "99edb409-2e56-4c0b-9bf7-b8478abf81b7",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "kSfRFeANulYkRwM9",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Upload file').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -48,
+        -304
+      ],
+      "id": "43d5939a-c1b8-46d7-a773-65541759b848",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "bx16g7qvT5b29Kpw",
+          "name": "Google Drive account - Ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/images/edits",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "prompt",
+              "value": "={{ $('AI Agent').item.json.output }}"
+            },
+            {
+              "name": "model",
+              "value": "gpt-image-1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        -304
+      ],
+      "id": "5c3018db-22f1-45d5-a381-ad417c97f482",
+      "name": "create image ( prompt+ uplaod image)",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "41ejxfd1yNdxOVAR",
+          "name": "Open AI - Ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data[0].b64_json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        -304
+      ],
+      "id": "a7377ecc-6b5c-43c7-8270-356e26f782e7",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.imgbb.com/1/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        64
+      ],
+      "id": "3a3753fe-6667-4363-9387-a68bbf9f15b5",
+      "name": "GET URL",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "5B4GvxLsRBTQECRX",
+          "name": "IMAGE BB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b3d49705-cfb9-4076-a361-587f7580c8d1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "RUNNING",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        64
+      ],
+      "id": "93670b64-3ade-418c-83be-009e550deec1",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        256
+      ],
+      "id": "f7146204-cd1f-4f67-ae87-5f43964d9054",
+      "name": "5 sec wait if running",
+      "webhookId": "031bbd2e-698b-4970-ab2c-e2cbc54e7dd3"
+    },
+    {
+      "parameters": {
+        "amount": 60
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        64
+      ],
+      "id": "397dfb68-e2f2-4cff-b637-325aba7797af",
+      "name": "Wait - 60 sec",
+      "webhookId": "1998a28a-62dd-4b90-8c7c-16579a43ca88"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.dev.runwayml.com/v1/tasks/{{ $json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Runway-Version",
+              "value": "2024-11-06"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        64
+      ],
+      "id": "83a44dfb-9554-4474-8a35-c6f47118d4d0",
+      "name": "Get video",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IWtJDTsVmeprzwOL",
+          "name": "RunwayAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dev.runwayml.com/v1/image_to_video",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Runway-Version",
+              "value": "2024-11-06"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"promptImage\": \"{{ $json.data.url }}\",\n  \"model\": \"gen4_turbo\",\n  \"promptText\": \"Create a fun and exciting marketing video from the provided product photo. Simulate a smooth, dynamic 3D turntable rotation around the product, keeping the motion fluid and lively instead of slow and static. Add playful camera movements such as gentle zoom-ins, angled sweeps, and stylish pans while always keeping the full product clearly visible and centered. Use cinematic studio lighting with bright highlights and crisp shadows to emphasize realism and texture. Place the product against a vibrant gradient background (electric blue, purple, or neon orange) that shifts subtly during the rotation to add energy. Enhance the video with tasteful motion accents like glowing light flares, soft sparkles, or quick reflection sweeps that follow the rotation. The overall style should feel premium, polished, and professional while being modern, vibrant, and eye-catching — perfect for social media ads that grab attention instantly.\",\n  \"duration\": 5,\n  \"ratio\": \"960:960\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        16,
+        64
+      ],
+      "id": "2fd85bb8-9e96-47ee-b775-8d42fb0639b8",
+      "name": "generate video",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IWtJDTsVmeprzwOL",
+          "name": "RunwayAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json['Email Address ( you will receive the content) '] }}",
+        "subject": "=Marketing Material :  {{ $('On form submission').item.json['Product '] }}",
+        "emailType": "text",
+        "message": "=Hey: \nHere is your professional photo : {{ $('GET URL').item.json.data.url }}\n\nHere is your video : {{ $json.output[0] }}\n\nHave a good day!\nCheers! ",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        160
+      ],
+      "id": "c041a8d5-2b05-4c00-bdf0-ad93e3871498",
+      "name": "Send a message",
+      "webhookId": "ca3c503f-d5c4-4eab-a5af-92dc89aaba29",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jOPFcJe1gioQ71p6",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "create image ( prompt+ uplaod image)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create image ( prompt+ uplaod image)": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "GET URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET URL": {
+      "main": [
+        [
+          {
+            "node": "generate video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "5 sec wait if running",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 sec wait if running": {
+      "main": [
+        [
+          {
+            "node": "Get video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait - 60 sec": {
+      "main": [
+        [
+          {
+            "node": "Get video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get video": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate video": {
+      "main": [
+        [
+          {
+            "node": "Wait - 60 sec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3db924b7-b150-473e-9091-3dc717fa2baa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed3baaf95649d47ce5bcd0e82297dfacdd53f0fa69a234e63dd8757fa1d1bf11"
+  },
+  "id": "C2RZS4bQZg0lhaSr",
+  "tags": [
+    {
+      "createdAt": "2025-09-12T19:15:36.254Z",
+      "updatedAt": "2025-09-12T19:15:36.254Z",
+      "id": "PrKKYOYIFi770i2s",
+      "name": "product marketing video"
+    }
+  ]
+}
