@@ -1,0 +1,272 @@
+{
+  "name": "Reactive AI Agent Email & Calendar Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        -96
+      ],
+      "id": "d2681376-5a1e-4330-b6ea-9d44b01af5e7",
+      "name": "When chat message received",
+      "webhookId": "2c7b4a02-f8c7-4cda-83de-138b31887913"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=#Overview \n\nYou are a helpful assistant\n\n##Tools\nCreate Event - use this to create an event\nSend a message in Gmail - use this to send an email. Sign off as Anisha \nGet emails - use this to get emails\nGet lables - use this to get labels \nAdd labels - use this tool to add a label to an email. You must firt use ' Get emails' to get the message ID of the email to label. Then you must use 'Get Labels' to get the label ID of the email to label.\n\n\n##Final Notes \nHere is the current date/time: {{ $now }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -64,
+        -96
+      ],
+      "id": "46564db0-8878-4cfc-9b0c-f2efb984d84d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        128
+      ],
+      "id": "eec7a3b6-1fcc-447e-a5f4-40e39967dc73",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HmwA0TsYQhHnxwfk",
+          "name": "OpenAi account - Ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "anisharvijan25@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anisharvijan25@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        112
+      ],
+      "id": "227f30eb-2e4f-40c5-9765-6a16075e72bd",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "KibietNcdzBMU04r",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        112
+      ],
+      "id": "819fae35-8afa-48ed-8603-bae3fe250c1c",
+      "name": "Send a message in Gmail",
+      "webhookId": "05ac96ee-2d1a-4784-89a9-0810ce5d519e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gPbEtXhvXVfLssIB",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {
+          "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        128
+      ],
+      "id": "8028094f-c114-44b2-b771-c70d7117ee67",
+      "name": "Get emails",
+      "webhookId": "45dd8b01-7e1a-4a0b-86b3-95a2e14484a9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gPbEtXhvXVfLssIB",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        192,
+        128
+      ],
+      "id": "01741bf1-3f3e-4822-9ec1-d59c8cbb2f4b",
+      "name": "Get Labels",
+      "webhookId": "a301e836-3f41-4285-ac4c-bb0f3a3aa2b9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gPbEtXhvXVfLssIB",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', `the label ID of th email to label `, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        144
+      ],
+      "id": "266b5494-c3d8-447f-9e9d-e67514d7afc5",
+      "name": "Add label",
+      "webhookId": "a3cc7bba-c445-42c2-81ec-7a2f20920dfd",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gPbEtXhvXVfLssIB",
+          "name": "Gmail account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Labels": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0f56b2d0-e4a5-4c52-8d20-79a306109f6d",
+  "meta": {
+    "instanceId": "ed3baaf95649d47ce5bcd0e82297dfacdd53f0fa69a234e63dd8757fa1d1bf11"
+  },
+  "id": "0Q5kzuH7rrCB0eUp",
+  "tags": [
+    {
+      "createdAt": "2025-09-16T02:22:55.249Z",
+      "updatedAt": "2025-09-16T02:22:55.249Z",
+      "id": "2Nux5qlfIbN4L3Fh",
+      "name": "REACTIVE PROMPTING"
+    }
+  ]
+}
