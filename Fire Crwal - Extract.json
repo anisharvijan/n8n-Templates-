@@ -1,0 +1,193 @@
+{
+  "name": "Fire Crwal - Extract",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/extract",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"urls\": [\n    \"https://quotes.toscrape.com/*\"\n  ],\n  \"prompt\": \"Extract all quotes and their corresponding authors from the website.\",\n  \"schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"quotes\": {\n        \"type\": \"array\",\n        \"items\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"text\": {\n              \"type\": \"string\"\n            },\n            \"author\": {\n              \"type\": \"string\"\n            }\n          },\n          \"required\": [\n            \"text\",\n            \"author\"\n          ]\n        }\n      }\n    },\n    \"required\": [\n      \"quotes\"\n    ]\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1216,
+        672
+      ],
+      "id": "48f7d62a-735f-48d9-98fb-e1e9bd213086",
+      "name": "Extract"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ff812e47-d747-4f1a-8fa8-9f3d40ec2acd",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1856,
+        672
+      ],
+      "id": "214d66fb-97cb-4003-9510-30b810e1468b",
+      "name": "If",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.firecrawl.dev/v1/extract/{{ $('Extract').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1664,
+        672
+      ],
+      "id": "7cb28491-8117-46e3-9864-de061cc07eaf",
+      "name": "Get Results"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1440,
+        672
+      ],
+      "id": "8ec82ca5-7760-4908-be6d-7d235400831d",
+      "name": "30 Secs",
+      "webhookId": "e4866198-b806-4746-b57f-97333c497dbf"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2128,
+        784
+      ],
+      "id": "741fdcc2-fe52-44e4-b5c4-9cea360a9254",
+      "name": "10 Seconds",
+      "webhookId": "6cc8c637-bafb-4d64-9cd4-8ae2a9f5b7ca"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2128,
+        528
+      ],
+      "id": "69368b56-14eb-47ce-8243-c7bca8082ae2",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract": {
+      "main": [
+        [
+          {
+            "node": "30 Secs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "10 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Results": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "30 Secs": {
+      "main": [
+        [
+          {
+            "node": "Get Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Get Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d2d9031c-5d68-4385-bbce-49a0799ce7bd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed3baaf95649d47ce5bcd0e82297dfacdd53f0fa69a234e63dd8757fa1d1bf11"
+  },
+  "id": "jE0DBDuhuZIj91kk",
+  "tags": []
+}
