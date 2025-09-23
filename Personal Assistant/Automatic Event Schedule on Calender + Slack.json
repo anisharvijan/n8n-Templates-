@@ -1,0 +1,440 @@
+{
+  "name": "Automatic Event Schedule on Calender + Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -880,
+        -128
+      ],
+      "id": "7cf9d70b-e345-4dc3-8ce2-164d5ed36fb1",
+      "name": "When chat message received",
+      "webhookId": "121e6226-f437-4437-8467-b3ea59a4cd50"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.chatInput }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "To schedule",
+              "description": "if the input text is related to time ,date and duration then classify this message as to shedule"
+            },
+            {
+              "category": "To ignore ",
+              "description": "if the input text is not at all  related to time ,date and duration then classify this message as to ignore"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -656,
+        -128
+      ],
+      "id": "7afe078c-2533-4487-be53-e05a59662f24",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -592,
+        112
+      ],
+      "id": "52bb2a21-83fa-4d6e-8c38-c7c6bcce3903",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HmwA0TsYQhHnxwfk",
+          "name": "OpenAi account - Ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.chatInput }}\n\n\nDraft an email requesting to book the meeting room on 1st floor or any other available floor for the mentioned date time and duration.( the year is 2025) (time zone is EST)\nFrom the input create a json respnse with the following objects. You should only give me a json response and nothing else\n\n1) email_from: hello@exple.com\n2) from_name : team Ani \n3) to_name:  Anisha \n4) to_email: anisharvijan25@gmail.com\n5) email_subject \n6) email_body \n7) full_email_content : include the subject. body , from and to \n8) date \n9) start_time : (in a format that works for google calendar for 2025)\n10) end_time : (in a format that works for goole calendar for 2025)\n11) A small title for the event - an event name ( something like \"Team meeting confirmation\")\n\n\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -304,
+        -128
+      ],
+      "id": "b478d30b-e266-4187-8aa6-d9db0ec9bda8",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HmwA0TsYQhHnxwfk",
+          "name": "OpenAi account - Ani"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "sendAndWait",
+        "user": {
+          "__rl": true,
+          "value": "U09FYDQB4JH",
+          "mode": "list",
+          "cachedResultName": "anisharvijan25"
+        },
+        "message": "=Hi please check the below message for the email draft and approve {{ $json.message.content.full_email_content }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        48,
+        -192
+      ],
+      "id": "2de538ba-6850-4167-8c26-941373a5c193",
+      "name": "Send message and wait for response",
+      "webhookId": "8b4dcbe6-5d6d-4cca-ad02-28ab50abdc42",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "deByaR8h4yJlTA0R",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        -128
+      ],
+      "id": "f3462ab2-1fb8-47e9-9a19-8f6415fd7e40",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "152eb259-5cda-4521-8966-7589a9455b0b",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        -128
+      ],
+      "id": "cf215169-4b4b-4881-9ec7-00b9ca54122a",
+      "name": "If",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "={{ $json.message.content.to_email }}",
+        "subject": "={{ $json.message.content.email_subject }}",
+        "message": "={{ $json.message.content.email_body }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        -192
+      ],
+      "id": "ceefe782-a202-417d-b2bd-489dd7cf25fc",
+      "name": "Send message and wait for response1",
+      "webhookId": "c1e25041-51f3-48f5-943b-ae45ee79a4f0",
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gPbEtXhvXVfLssIB",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        944,
+        -128
+      ],
+      "id": "51036fe6-0800-4419-a88f-04fb44ca7698",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f7d96e4a-0160-4a26-b491-b0e0b0bf3d74",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        -128
+      ],
+      "id": "a01e8a81-2d7b-40bf-889c-2abeb058174d",
+      "name": "If1",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "anisharvijan25@gmail.com",
+          "mode": "list",
+          "cachedResultName": "anisharvijan25@gmail.com"
+        },
+        "start": "={{ $json.message.content.start_time }}",
+        "end": "={{ $json.message.content.end_time }}",
+        "additionalFields": {
+          "summary": "={{ $json.message.content.event_title }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        -224
+      ],
+      "id": "26e3e390-df82-4a3d-93ba-9b26aa91ff2f",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "KibietNcdzBMU04r",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        []
+      ]
+    },
+    "Send message and wait for response1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7798ed7e-9931-49c7-a72f-04053ac1e26e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed3baaf95649d47ce5bcd0e82297dfacdd53f0fa69a234e63dd8757fa1d1bf11"
+  },
+  "id": "bNe1QFO9BYG3Jd4o",
+  "tags": [
+    {
+      "createdAt": "2025-09-20T02:17:51.835Z",
+      "updatedAt": "2025-09-20T02:17:51.835Z",
+      "id": "erYxmcmWXFnQDv0C",
+      "name": "Automatic event schedule"
+    }
+  ]
+}
